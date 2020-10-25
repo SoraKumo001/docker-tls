@@ -3,9 +3,13 @@ TEMP_DIR=/tmp/docker-temp
 SERVER_DIR=/etc/docker/certs
 CLIENT_DIR=${HOME}/.docker
 CERTS_PASS=password
-CERTS_NAMES=DNS:*,IP:127.0.0.1
+CERTS_NAMES=IP:127.0.0.1,DNS:localhost
 CERTS_INFO="JP\n\n\n\n\n\n\n\n\n"
 CERTS_DAYS=36500
+
+if [ -n $1 ]; then
+    CERTS_NAMES = $CERTS_NAMES,$1
+fi
 
 #mkdir
 mkdir -p $TEMP_DIR
@@ -13,19 +17,20 @@ mkdir -p $SERVER_DIR
 mkdir -p $CLIENT_DIR
 cd ${TEMP_DIR}
 
-#Server
+#Myself
 openssl genrsa -aes256 -passout pass:$CERTS_PASS -out ca-key.pem 4096 
 echo -e $CERTS_INFO | openssl req -new -x509 -passin pass:$CERTS_PASS -days $CERTS_DAYS -key ca-key.pem -sha256 -out ca.pem
 
+#Server
 openssl genrsa -out server-key.pem 4096 
-echo -e $CERTS_INFO | openssl req -sha256 -new -key server-key.pem -out server.csr
+echo -e $CERTS_INFO | openssl req -subj "/CN=server" -sha256 -new -key server-key.pem -out server.csr
 
 echo subjectAltName = $CERTS_NAMES > extfile.cnf
-openssl x509 -req -days 30000 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out server-cert.pem -extfile extfile.cnf
+openssl x509 -req -days $CERTS_DAYS -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out server-cert.pem -extfile extfile.cnf
 
 #Client
 openssl genrsa -out key.pem 4096 
-echo -e $CERTS_INFO | openssl req -new -key key.pem -out client.csr
+echo -e $CERTS_INFO | openssl req -subj '/CN=client' -new -key key.pem -out client.csr
 
 echo extendedKeyUsage = clientAuth > extfile.cnf
 openssl x509 -req -days $CERTS_DAYS -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out cert.pem -extfile extfile.cnf

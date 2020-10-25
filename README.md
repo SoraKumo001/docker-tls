@@ -1,9 +1,19 @@
 # docker-tls
 
-## usage
+## Download
+
+```.sh
+curl -O https://raw.githubusercontent.com/SoraKumo001/docker-tls/master/docker-tls.sh
+```
+
+## Usage
 
 ```.sh
 sudo sh docker-tls.sh
+```
+
+```.sh
+sudo sh docker-tls.sh DNS:host.example.com,IP:10.1.1.1
 ```
 
 ## Create files

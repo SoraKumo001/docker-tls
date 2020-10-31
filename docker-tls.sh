@@ -40,9 +40,9 @@ chmod 0400 ca-key.pem server-key.pem key.pem
 chmod 0444 ca.pem server-cert.pem cert.pem
 
 # Server keys
-cp ./ca.pem ${SERVER_DIR}
-mv ./server-key.pem ${SERVER_DIR}
-mv ./server-cert.pem ${SERVER_DIR}
+cp -f ./ca.pem ${SERVER_DIR}
+mv -f ./server-key.pem ${SERVER_DIR}
+mv -f ./server-cert.pem ${SERVER_DIR}
 
 # Client keys
 mv -f ca.pem ${CLIENT_DIR}
@@ -55,15 +55,15 @@ fi
 #delete temp
 rm -rf ${TEMP_DIR}
 
-echo "\n\n-- Create files --"
+echo -e "\n\n-- Create files --"
 echo ${SERVER_DIR}/ca.pem
 echo ${SERVER_DIR}/server-key.pem
-echo ${SERVER_DIR}//server-cert.pem
+echo ${SERVER_DIR}/server-cert.pem
 echo ${CLIENT_DIR}/ca.pem
 echo ${CLIENT_DIR}/cert.pem
 echo ${CLIENT_DIR}/key.pem
 
-echo "\n\n-- Edit file--"
-echo "/lib/systemd/system/docker.service\n"
+echo -e "\n\n-- Edit file--"
+echo -e "/lib/systemd/system/docker.service\n"
 echo ExecStart=/usr/bin/dockerd --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/docker/certs/server-cert.pem --tlskey=/etc/docker/certs/server-key.pem -H tcp://0.0.0.0 -H fd:// --containerd=/run/containerd/containerd.sock
 echo 

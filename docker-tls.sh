@@ -1,4 +1,5 @@
 #!/bin/sh
+
 TEMP_DIR=/tmp/docker-temp
 SERVER_DIR=/etc/docker/certs
 CLIENT_DIR=${HOME}/.docker
@@ -8,7 +9,7 @@ CERTS_INFO="JP\n\n\n\n\n\n\n\n\n"
 CERTS_DAYS=36500
 
 if [ -n $1 ]; then
-    CERTS_NAMES = $CERTS_NAMES,$1
+    CERTS_NAMES=$CERTS_NAMES,$1
 fi
 
 #mkdir
@@ -66,4 +67,4 @@ echo ${CLIENT_DIR}/key.pem
 echo -e "\n\n-- Edit file--"
 echo -e "/lib/systemd/system/docker.service\n"
 echo ExecStart=/usr/bin/dockerd --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/docker/certs/server-cert.pem --tlskey=/etc/docker/certs/server-key.pem -H tcp://0.0.0.0 -H fd:// --containerd=/run/containerd/containerd.sock
-echo 
+echo

@@ -18,30 +18,37 @@ mkdir -p $SERVER_DIR
 mkdir -p $CLIENT_DIR
 cd ${TEMP_DIR}
 
-#Myself
-openssl genrsa -aes256 -passout pass:$CERTS_PASS -out ca-key.pem 4096 
-echo -e $CERTS_INFO | openssl req -new -x509 -passin pass:$CERTS_PASS -days $CERTS_DAYS -key ca-key.pem -sha256 -out ca.pem
+#Private
+if [ -f $SERVER_DIR/private-key.pem ]; then
+    cp $SERVER_DIR/private-key.pem .
+else
+    openssl genrsa -aes256 -passout pass:$CERTS_PASS -out private-key.pem 4096 
+fi
+
+#MyselfCA
+echo -e $CERTS_INFO | openssl req -new -x509 -passin pass:$CERTS_PASS -days $CERTS_DAYS -key private-key.pem -sha256 -out ca.pem
 
 #Server
 openssl genrsa -out server-key.pem 4096 
 echo -e $CERTS_INFO | openssl req -subj "/CN=server" -sha256 -new -key server-key.pem -out server.csr
 
 echo subjectAltName = $CERTS_NAMES > extfile.cnf
-openssl x509 -req -days $CERTS_DAYS -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out server-cert.pem -extfile extfile.cnf
+openssl x509 -req -days $CERTS_DAYS -sha256 -in server.csr -CA ca.pem -CAkey private-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out server-cert.pem -extfile extfile.cnf
 
 #Client
 openssl genrsa -out key.pem 4096 
 echo -e $CERTS_INFO | openssl req -subj '/CN=client' -new -key key.pem -out client.csr
 
 echo extendedKeyUsage = clientAuth > extfile.cnf
-openssl x509 -req -days $CERTS_DAYS -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out cert.pem -extfile extfile.cnf
+openssl x509 -req -days $CERTS_DAYS -sha256 -in client.csr -CA ca.pem -CAkey private-key.pem -CAcreateserial -passin pass:$CERTS_PASS -out cert.pem -extfile extfile.cnf
 
 #chmod
-chmod 0400 ca-key.pem server-key.pem key.pem
+chmod 0400 private-key.pem server-key.pem key.pem
 chmod 0444 ca.pem server-cert.pem cert.pem
 
 # Server keys
 cp -f ./ca.pem ${SERVER_DIR}
+mv -f ./private-key.pem ${SERVER_DIR}
 mv -f ./server-key.pem ${SERVER_DIR}
 mv -f ./server-cert.pem ${SERVER_DIR}
 
@@ -57,6 +64,7 @@ fi
 rm -rf ${TEMP_DIR}
 
 echo -e "\n\n-- Create files --"
+echo ${SERVER_DIR}/private-key.pem
 echo ${SERVER_DIR}/ca.pem
 echo ${SERVER_DIR}/server-key.pem
 echo ${SERVER_DIR}/server-cert.pem
